@@ -1,0 +1,2 @@
+# majong-
+a majong app
