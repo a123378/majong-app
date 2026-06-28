@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>麻將小博士 PWA</title>
+  
+  <!-- SEO & Social Meta Tags -->
+  <meta name="description" content="專注於個人戰績紀錄的麻將盈虧統計工具，提供直覺的自摸、胡牌、放槍、被自摸點擊，並支援 PWA 手機桌面安裝與 LocalStorage 離線自動儲存。">
+  <meta name="theme-color" content="#0b0f19">
+  
+  <!-- Web App Capabilities (iOS) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="麻將小博士">
+  <link rel="apple-touch-icon" href="icon_198x278.png">
+  
+  <!-- Manifest & Styles -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Update Notification Banner -->
+  <div class="update-banner" id="updateBanner" role="alert" aria-live="assertive">
+    <div class="ub-content">
+      <span class="ub-icon">🚀</span>
+      <span class="ub-text">發現新版本，請點擊重新載入</span>
+    </div>
+    <button class="ub-action-btn" id="btnReloadUpdate">重新載入</button>
+  </div>
+
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header>
+      <div class="logo-section">
+        <img class="logo-icon" src="./icon_198x278.png" alt="麻將小博士">
+        <h1>麻將小博士</h1>
+      </div>
+      <!-- Floating settings control -->
+      <button class="icon-btn" id="openSettingsBtn" aria-label="開啟設定" title="開啟設定">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Info Row for Settings Summary -->
+    <section class="info-row" aria-label="目前規則設定">
+      <div class="badge">
+        <span class="badge-label">底價</span>
+        <span class="badge-value accent" id="summaryBaseDisplay">$300</span>
+      </div>
+      <div class="badge">
+        <span class="badge-label">台價</span>
+        <span class="badge-value accent" id="summaryPointDisplay">$100</span>
+      </div>
+    </section>
+
+    <!-- Total Score Dashboard Card -->
+    <section class="dashboard-panel" aria-label="本雀總結算看板">
+      <div class="dashboard-top-row">
+        <div class="dashboard-profit-box">
+          <span class="dashboard-label">本場盈虧金額</span>
+          <span class="dashboard-profit zero" id="totalProfitDisplay">$0</span>
+        </div>
+        <div class="dashboard-hands-box">
+          <span class="dashboard-label">本場總局數</span>
+          <span class="dashboard-hands-val" id="totalHandsCount">0 局</span>
+        </div>
+      </div>
+      
+      <div class="dashboard-summary-grid four-cols">
+        <div class="summary-item">
+          <span class="summary-label" style="color: var(--color-profit); font-weight: 600;">自摸數</span>
+          <span class="summary-val" id="todaySelfDrawnCount" style="color: var(--color-profit);">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label" style="color: #38bdf8; font-weight: 600;">胡牌數</span>
+          <span class="summary-val" id="todayWinCount" style="color: #38bdf8;">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label" style="color: var(--color-loss); font-weight: 600;">放槍數</span>
+          <span class="summary-val" id="todayDiscardCount" style="color: var(--color-loss);">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label" style="color: var(--color-passive); font-weight: 600;">被自摸數</span>
+          <span class="summary-val" id="todayPassiveDrawnCount" style="color: var(--color-passive);">0</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Probability Rates Analysis -->
+    <section class="info-row" aria-label="機率統計指標" style="margin-bottom: 20px;">
+      <div class="badge">
+        <span class="badge-label" style="color: var(--color-profit); font-weight: 600;">本場自摸率</span>
+        <span class="badge-value" id="rateSelfDrawn" style="color: var(--color-profit);">0%</span>
+      </div>
+      <div class="badge">
+        <span class="badge-label" style="color: #38bdf8; font-weight: 600;">本場胡牌率</span>
+        <span class="badge-value" id="rateWin" style="color: #38bdf8;">0%</span>
+      </div>
+      <div class="badge">
+        <span class="badge-label" style="color: var(--color-loss); font-weight: 600;">本場放槍率</span>
+        <span class="badge-value" id="rateDiscard" style="color: var(--color-loss);">0%</span>
+      </div>
+    </section>
+
+    <!-- Core Actions Area (Grid of Main Buttons) -->
+    <main class="core-operations">
+      <button class="op-btn large-btn win-card" id="btnWin" aria-label="胡牌點擊輸入">
+        <span class="op-btn-icon">🎉</span>
+        <span class="op-btn-label">胡牌</span>
+      </button>
+
+      <button class="op-btn large-btn discard" id="btnDiscard" aria-label="放槍點擊輸入">
+        <span class="op-btn-icon">🔫</span>
+        <span class="op-btn-label">放槍</span>
+      </button>
+
+      <button class="op-btn large-btn self-drawn" id="btnSelfDrawn" aria-label="自摸點擊輸入">
+        <span class="op-btn-icon">🀄</span>
+        <span class="op-btn-label">自摸</span>
+      </button>
+      
+      <button class="op-btn large-btn passive-drawn" id="btnPassiveDrawn" aria-label="被自摸點擊輸入">
+        <span class="op-btn-icon">💸</span>
+        <span class="op-btn-label">被自摸</span>
+      </button>
+
+      <button class="op-btn full-width draw" id="btnDraw" aria-label="流局沒事點擊輸入">
+        <span class="op-btn-icon">🤝</span>
+        <span class="op-btn-label">流局沒事</span>
+      </button>
+    </main>
+
+    <!-- Daily Summary Feed -->
+    <section class="history-section" aria-label="每日戰績統整">
+      <div class="section-header">
+        <h2 class="section-title">每日戰績統整</h2>
+      </div>
+      
+      <div class="history-list" id="historyList">
+        <!-- Dynamically rendered or fallbacks to empty -->
+        <div class="history-empty" id="historyEmptyState">
+          目前無任何打牌紀錄，點擊上方按鈕開始記帳吧！
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Custom Glassmorphism Numeric Keypad Overlay -->
+  <div class="modal-overlay" id="keypadModal" role="dialog" aria-modal="true" aria-labelledby="keypadTitle">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title" id="keypadTitle">自摸 - 請輸入台數</h3>
+        <button class="modal-close" id="closeKeypadBtn" aria-label="關閉小鍵盤">&times;</button>
+      </div>
+      
+      <!-- Keypad Preview Screen -->
+      <div class="kp-preview">
+        <span class="kp-preview-label">輸入台數</span>
+        <div class="kp-preview-vals">
+          <span class="kp-preview-points" id="keypadPointsDisplay">0 台</span>
+          <span class="kp-preview-amount" id="keypadAmountPreview">+$0</span>
+        </div>
+      </div>
+
+      <!-- Presets quick buttons -->
+      <div class="kp-presets" id="keypadPresets">
+        <button class="preset-btn" data-value="1">1台</button>
+        <button class="preset-btn" data-value="2">2台</button>
+        <button class="preset-btn" data-value="3">3台</button>
+        <button class="preset-btn" data-value="4">4台</button>
+        <button class="preset-btn" data-value="5">5台</button>
+        <button class="preset-btn" data-value="8">8台</button>
+      </div>
+
+      <!-- Grid Buttons -->
+      <div class="kp-grid">
+        <button class="kp-btn num-key">1</button>
+        <button class="kp-btn num-key">2</button>
+        <button class="kp-btn num-key">3</button>
+        
+        <button class="kp-btn num-key">4</button>
+        <button class="kp-btn num-key">5</button>
+        <button class="kp-btn num-key">6</button>
+        
+        <button class="kp-btn num-key">7</button>
+        <button class="kp-btn num-key">8</button>
+        <button class="kp-btn num-key">9</button>
+        
+        <button class="kp-btn action-btn delete" id="kpDeleteKey" aria-label="刪除">退格</button>
+        <button class="kp-btn num-key">0</button>
+        <button class="kp-btn action-btn confirm" id="kpConfirmKey" aria-label="確認送出">確認</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Sheet Modal -->
+  <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title" id="settingsTitle">
+          <span style="font-size:1.4rem;">⚙️</span> 雀局規格設定
+        </h3>
+        <button class="modal-close" id="closeSettingsBtn" aria-label="關閉設定">&times;</button>
+      </div>
+      
+      <div class="settings-form">
+        <!-- Preset Options Grid (3 Options Only) -->
+        <div class="form-group">
+          <label class="form-label">選擇底台規格</label>
+          <div class="settings-presets-grid" id="settingsPresets">
+            <button type="button" class="settings-preset-card" data-base="30" data-point="10">
+              底30/台10
+            </button>
+            <button type="button" class="settings-preset-card" data-base="50" data-point="20">
+              底50/台20
+            </button>
+            <button type="button" class="settings-preset-card" data-base="100" data-point="20">
+              底100/台20
+            </button>
+          </div>
+        </div>
+
+        <!-- Manual Input Fields (DO NOT DELETE) -->
+        <div class="manual-settings-fields" style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 16px;">
+          <!-- Base Input -->
+          <div class="form-group">
+            <label class="form-label" for="inputBase">底的金額 (B)</label>
+            <div class="form-input-wrapper">
+              <span class="form-input-prefix">$</span>
+              <input type="number" id="inputBase" class="form-input" placeholder="例如: 30" min="0" step="10" inputmode="numeric">
+            </div>
+          </div>
+          
+          <!-- Point Input -->
+          <div class="form-group">
+            <label class="form-label" for="inputPoint">每台的金額 (P)</label>
+            <div class="form-input-wrapper">
+              <span class="form-input-prefix">$</span>
+              <input type="number" id="inputPoint" class="form-input" placeholder="例如: 10" min="0" step="5" inputmode="numeric">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Save Button -->
+        <button type="button" class="submit-btn" id="btnSaveSettings" style="margin-top: 16px;">
+          確認並更新設定
+        </button>
+
+        <!-- PWA Install Button (Only visible if installable) -->
+        <button type="button" class="submit-btn hidden" id="btnInstallPWA" style="margin-top: 12px; background: var(--color-accent-gradient); border: none; color: #fff; box-shadow: var(--shadow-glow-accent);">
+          <span>📲</span> 安裝應用程式到桌面
+        </button>
+        
+        <!-- Destructive Reset Zone -->
+        <div class="reset-zone">
+          <p class="reset-desc">
+            若這雀牌局打完了，請點選下方按鈕結算本場並開始新的一場。目前的數據將會存入歷史紀錄中，且主畫面會重置為0，讓您開始新的一雀（此動作不會影響歷史戰績統整）。
+          </p>
+          <button type="button" class="reset-btn" id="btnResetAll">
+            <span>🏁</span> 結束本場並開新局
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Big Hand Self-Drawn Prompt Modal -->
+  <div class="modal-overlay" id="bigHandModal" role="dialog" aria-modal="true" aria-labelledby="bigHandTitle">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title" id="bigHandTitle">🎉 恭喜大牌自摸！</h3>
+        <button class="modal-close" id="closeBigHandBtn" aria-label="關閉大牌提示">&times;</button>
+      </div>
+      
+      <div class="settings-form">
+        <p style="font-size: 0.9rem; color: var(--text-secondary); text-align: center; margin-bottom: 8px;">
+          請選擇或輸入特殊牌型（將會標記於歷史紀錄中）：
+        </p>
+        
+        <!-- Preset Hand Types -->
+        <div class="form-group">
+          <label class="form-label">熱門特殊牌型</label>
+          <div class="kp-presets" id="bigHandPresets" style="grid-template-columns: repeat(2, 1fr); gap: 10px;">
+            <button type="button" class="preset-btn hand-type-preset" data-value="清一色">清一色</button>
+            <button type="button" class="preset-btn hand-type-preset" data-value="碰碰胡">碰碰胡</button>
+            <button type="button" class="preset-btn hand-type-preset" data-value="混一色">混一色</button>
+            <button type="button" class="preset-btn hand-type-preset" data-value="小三元">小三元</button>
+          </div>
+        </div>
+        
+        <!-- Custom Input -->
+        <div class="form-group">
+          <label class="form-label" for="inputCustomHand">自訂特殊牌型</label>
+          <input type="text" id="inputCustomHand" class="form-input" placeholder="例如: 大三元、八仙過海" style="padding-left: 16px;">
+        </div>
+        
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; margin-top: 10px;">
+          <button type="button" class="submit-btn" id="btnSkipBigHand" style="flex: 1; background: rgba(255,255,255,0.06); border: 1px solid var(--border-glass); color: var(--text-secondary); box-shadow: none;">
+            略過直接紀錄
+          </button>
+          <button type="button" class="submit-btn" id="btnConfirmBigHand" style="flex: 1;">
+            確認紀錄
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily Details Slide-Over Screen -->
+  <div class="details-page-overlay" id="detailsPage" role="dialog" aria-modal="true" aria-labelledby="detailsPageTitle">
+    <div class="details-container">
+      <!-- Header -->
+      <header class="details-header">
+        <button class="back-btn" id="btnBackToHome" aria-label="返回首頁">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          返回
+        </button>
+        <h2 class="details-title" id="detailsPageTitle">戰績詳情</h2>
+        <div style="width: 50px;"></div> <!-- Spacer to visually balance and center the title -->
+      </header>
+
+      <div class="details-scroll-content">
+        <!-- Stats Card -->
+        <section class="details-stats-panel" aria-label="當日數據統計">
+          <span class="d-stats-label">當日總盈虧</span>
+          <span class="d-stats-profit zero" id="dayProfitDisplay">$0</span>
+          
+          <!-- Probability Rates Row (Aligned in exact order: 自摸率, 胡牌率, 放槍率) -->
+          <div class="d-stats-rates-row" style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;">
+            <div class="badge-mini" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center;">
+              <span class="badge-mini-label" style="font-size: 0.7rem; color: var(--color-profit); font-weight: 600; margin-bottom: 2px;">自摸率</span>
+              <span class="badge-mini-value" id="daySelfDrawnRateDisplay" style="font-size: 1.2rem; font-weight: 800; color: var(--color-profit); text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);">0%</span>
+            </div>
+            <div class="badge-mini" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center;">
+              <span class="badge-mini-label" style="font-size: 0.7rem; color: #38bdf8; font-weight: 600; margin-bottom: 2px;">胡牌率</span>
+              <span class="badge-mini-value" id="dayWinRateDisplay" style="font-size: 1.2rem; font-weight: 800; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.2);">0%</span>
+            </div>
+            <div class="badge-mini" style="flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 12px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center;">
+              <span class="badge-mini-label" style="font-size: 0.7rem; color: var(--color-loss); font-weight: 600; margin-bottom: 2px;">放槍率</span>
+              <span class="badge-mini-value" id="dayDiscardRateDisplay" style="font-size: 1.2rem; font-weight: 800; color: var(--color-loss); text-shadow: 0 0 10px rgba(244, 63, 94, 0.2);">0%</span>
+            </div>
+          </div>
+
+          <div class="d-stats-grid">
+            <div class="d-grid-item">
+              <span class="d-grid-label">總局數</span>
+              <span class="d-grid-val" id="dayTotalHands">0 局</span>
+            </div>
+            <div class="d-grid-item">
+              <span class="d-grid-label">自摸次數</span>
+              <span class="d-grid-val text-profit" id="daySelfDrawnCount">0</span>
+            </div>
+            <div class="d-grid-item">
+              <span class="d-grid-label">胡牌次數</span>
+              <span class="d-grid-val text-win" id="dayWinCount">0</span>
+            </div>
+            <div class="d-grid-item">
+              <span class="d-grid-label">放槍次數</span>
+              <span class="d-grid-val text-loss" id="dayDiscardCount">0</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Dynamic Game List -->
+        <section class="details-list-section" aria-label="當日明細紀錄">
+          <h3 class="details-list-title">單日歷史明細</h3>
+          <div class="details-history-list" id="dayHistoryList">
+            <!-- Dynamically rendered day cards -->
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notification Banner -->
+  <div class="alert-toast" id="toastAlert" role="status" aria-live="polite">
+    <span id="toastIcon">✨</span>
+    <span id="toastMessage">操作成功</span>
+  </div>
+
+  <!-- Application Logic JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
